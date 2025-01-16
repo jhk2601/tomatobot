@@ -3,14 +3,20 @@ import discord
 import datetime
 from datetime import timedelta
 from discord import utils, Forbidden
+import requests
 import random
 import os
+import httpx
+import base64
 from dotenv import load_dotenv
+import google.generativeai as genai
 import time
 # GETS THE CLIENT OBJECT FROM DISCORD.PY. CLIENT IS SYNONYMOUS WITH BOT.
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 GUILD = "jamjam's server"
+genai.configure(api_key=os.getenv("KEY"))
+model = genai.GenerativeModel("gemini-2.0-flash-exp")
 bot = discord.Client(intents=discord.Intents.all())
 time = timedelta(minutes=1)
 global idlist
@@ -106,7 +112,19 @@ async def on_message(message):
 		# SENDS BACK A MESSAGE TO THE CHANNEL.
 		await message.channel.send("hatsune miku did 9/11 do not trust that lying blue haired devil")
 
-	# "comprehensive tests" 
+	if message.attachments:
+		for attachment in message.attachments:
+			if attachment.content_type.startswith('image/'):
+				image = httpx.get(attachment.url)
+
+				prompt = "Determine if this image depicts an anime woman. If it does, reply with ONLY A SINGLE WORD: Yes (no punctuation) If it does not, reply with ONLY A SINGLE WORD: No."
+				response = model.generate_content(
+					[{'mime_type': 'image/jpeg', 'data': base64.b64encode(image.content).decode('utf-8')}, prompt])
+				if response.text == "Yes":
+					await message.channel.send("no more anime girls, deleting " + message.author.name + " 's image.")
+					await message.delete()
+
+	# "comprehensive tests"
 	msg = message.content
 	print(msg)
 	if "woof" in message.content:
@@ -115,14 +133,9 @@ async def on_message(message):
 		# double checking for quality ensurance
 		if "woof" in msg:
 			# ai integration for peak responses
-			if rng < 100:
-				await message.channel.send("who's a good puppy...")
-			elif rng % 3 == 0:
-				await message.channel.send("arf arf :3")
-			elif rng % 2 == 0:
-				await message.channel.send("woooof")
-			else:
-				await message.channel.send("you're gay.")
+			response = model.generate_content("Mock the user " + message.author.name + "(use this name specifically) for roleplaying as an animal on the internet, specifically for using the word 'woof'. Be harsh, but fair. Write in extensive detail, but under 1800 characters."
+											  "speak like the average internet power user would on this topic. do not make lists or use emdashes. Use capital letters only.")
+			await message.channel.send(response.text)
 	
 		
 	if "meow" in message.content:
