@@ -105,6 +105,8 @@ async def on_message(message):
 	if message.content == "miku":
 		# SENDS BACK A MESSAGE TO THE CHANNEL.
 		await message.channel.send("hatsune miku did 9/11 do not trust that lying blue haired devil")
+	if "woof" in message.content:
+		await message.channel.send("arf arf :3");
 	if "meow" in message.content:
 		if rng % 10 == 0:
 			await message.channel.send("meow meow meow all these kids do in this generation is FUCKING meow, edate and charge they phone kamalas FUCKINg america")
